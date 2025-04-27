@@ -1,0 +1,57 @@
+description,category,amount,date,payment_method,currency,user_id
+groceries at walmart,Groceries,150.75,2024-01-15,credit_card,USD,1
+monthly rent payment,Housing,1200.00,2024-01-01,bank_transfer,USD,1
+electricity bill,Utilities,85.50,2024-01-10,direct_debit,USD,1
+water bill,Utilities,45.25,2024-01-12,direct_debit,USD,1
+internet service,Utilities,65.00,2024-01-05,credit_card,USD,1
+bus fare,Transportation,2.50,2024-01-16,cash,USD,1
+uber ride,Transportation,25.00,2024-01-17,credit_card,USD,1
+movie tickets,Entertainment,30.00,2024-01-20,credit_card,USD,1
+restaurant dinner,Food,75.50,2024-01-21,credit_card,USD,1
+coffee at starbucks,Food,5.75,2024-01-22,debit_card,USD,1
+gym membership,Health,50.00,2024-01-01,direct_debit,USD,1
+doctor visit,Healthcare,150.00,2024-01-25,insurance,USD,1
+medicine from pharmacy,Healthcare,35.25,2024-01-25,debit_card,USD,1
+new laptop,Electronics,1200.00,2024-01-26,credit_card,USD,1
+phone bill,Utilities,55.00,2024-01-15,direct_debit,USD,1
+car insurance,Insurance,125.00,2024-01-01,direct_debit,USD,1
+health insurance premium,Insurance,350.00,2024-01-01,direct_debit,USD,1
+books from amazon,Education,85.50,2024-01-27,credit_card,USD,1
+online course subscription,Education,199.99,2024-01-01,credit_card,USD,1
+office supplies,Office,45.75,2024-01-28,debit_card,USD,1
+clothing purchase,Shopping,125.50,2024-01-29,credit_card,USD,1
+shoes from nike,Shopping,95.00,2024-01-29,credit_card,USD,1
+home maintenance,Housing,250.00,2024-01-30,bank_transfer,USD,1
+car maintenance,Transportation,175.50,2024-01-31,credit_card,USD,1
+gas for car,Transportation,45.00,2024-01-31,debit_card,USD,1
+netflix subscription,Entertainment,15.99,2024-01-01,credit_card,USD,1
+spotify premium,Entertainment,9.99,2024-01-01,credit_card,USD,1
+dental checkup,Healthcare,125.00,2024-01-15,insurance,USD,1
+vitamins and supplements,Health,45.50,2024-01-16,credit_card,USD,1
+haircut and styling,Personal Care,35.00,2024-01-17,cash,USD,1
+pet food and supplies,Pets,75.25,2024-01-18,debit_card,USD,1
+veterinary visit,Pets,150.00,2024-01-19,credit_card,USD,1
+birthday gift,Gifts,50.00,2024-01-20,credit_card,USD,1
+holiday shopping,Shopping,450.00,2024-01-21,credit_card,USD,1
+hotel booking,Travel,350.00,2024-01-22,credit_card,USD,1
+flight tickets,Travel,550.00,2024-01-22,credit_card,USD,1
+train tickets,Transportation,35.00,2024-01-23,debit_card,USD,1
+taxi fare,Transportation,22.50,2024-01-24,cash,USD,1
+lunch at work,Food,12.50,2024-01-25,cash,USD,1
+breakfast at cafe,Food,8.75,2024-01-26,debit_card,USD,1
+snacks and beverages,Food,15.25,2024-01-27,cash,USD,1
+mobile phone purchase,Electronics,899.99,2024-01-28,credit_card,USD,1
+laptop repair,Electronics,175.00,2024-01-29,credit_card,USD,1
+home internet setup,Utilities,99.99,2024-01-30,credit_card,USD,1
+car loan payment,Loans,350.00,2024-01-01,direct_debit,USD,1
+student loan payment,Loans,250.00,2024-01-01,direct_debit,USD,1
+credit card payment,Loans,500.00,2024-01-01,bank_transfer,USD,1
+home insurance,Insurance,125.00,2024-01-01,direct_debit,USD,1
+life insurance premium,Insurance,75.00,2024-01-01,direct_debit,USD,1
+property tax,Taxes,750.00,2024-01-15,bank_transfer,USD,1
+income tax payment,Taxes,1500.00,2024-01-15,bank_transfer,USD,1
+sales tax,Taxes,85.50,2024-01-16,credit_card,USD,1
+charitable donation,Charity,100.00,2024-01-17,credit_card,USD,1
+investment deposit,Investments,1000.00,2024-01-18,bank_transfer,USD,1
+retirement contribution,Investments,500.00,2024-01-01,direct_debit,USD,1
+emergency fund savings,Savings,250.00,2024-01-01,bank_transfer,USD,1

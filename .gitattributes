@@ -1,0 +1,59 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Python files
+*.py text diff=python
+*.pyw text diff=python
+
+# Django template files
+*.html text diff=html
+*.htm text diff=html
+
+# JavaScript files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+
+# CSS files
+*.css text
+*.scss text
+*.sass text
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+*.rst text
+
+# Configuration files
+*.yml text
+*.yaml text
+*.json text
+*.toml text
+*.ini text
+*.cfg text
+*.conf text
+.env text
+.gitattributes text
+.gitignore text
+requirements.txt text
+
+# Binary files (no EOL conversion)
+*.db binary
+*.p binary
+*.pkl binary
+*.pyc binary
+*.pyo binary
+*.pyd binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.tgz binary
+*.rar binary
+*.7z binary 
