@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# ENV
+.env
+venv/
+ENV/
+env/
+venv.bak/
+
+# Pytest
+.cache/
+*.cover
+coverage.xml
+htmlcov/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Pycharm
+*.iml
+*.ipr
+*.iws
+out/
+
+# Migrations (optional: include if you generate them per environment)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# Node (if using npm/yarn for frontend)
+node_modules/
+
+# Docker (optional)
+docker-compose.override.yml
