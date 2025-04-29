@@ -47,3 +47,6 @@ node_modules/
 
 # Docker (optional)
 docker-compose.override.yml
+git rm -r --cached .
+git add .
+git commit -m "Add .gitignore and clean up tracked files"

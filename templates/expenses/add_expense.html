@@ -10,7 +10,7 @@
                 <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Expense</h4>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'add-expense' %}" id="expenseForm">
+                <form method="post" action="{% url 'add_expense' %}" id="expenseForm">
                     {% csrf_token %}
                     
                     <div class="mb-3">
@@ -88,23 +88,17 @@ $(document).ready(function() {
     
     function predictCategory(description) {
         $.ajax({
-            url: "{% url 'predict-category' %}",
+            url: "{% url 'predict_category' %}",
             type: "POST",
             data: {
                 'description': description,
-                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function(response) {
-                displayPredictions(response.predictions);
-                if (response.predictions.length > 0) {
-                    // Auto-select the highest probability category
-                    const topPrediction = response.predictions[0];
-                    $('#category').val(topPrediction.category_id);
-                }
+                $('#category').val(response.predicted_category);
             },
-            error: function(xhr, errmsg, err) {
-                console.log("Error predicting category:", errmsg);
-                $('#categoryPredictions').html('<div class="text-danger">Error predicting category</div>');
+            error: function(xhr) {
+                console.error('Error predicting category:', xhr.responseText);
             }
         });
     }

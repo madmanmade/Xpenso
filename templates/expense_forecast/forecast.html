@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expense Forecast{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Expense Forecast</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="forecast_period">Forecast Period</label>
+                                    <select class="form-control" id="forecast_period" name="forecast_period">
+                                        <option value="1" {% if forecast_period == 1 %}selected{% endif %}>1 Month</option>
+                                        <option value="3" {% if forecast_period == 3 %}selected{% endif %}>3 Months</option>
+                                        <option value="6" {% if forecast_period == 6 %}selected{% endif %}>6 Months</option>
+                                        <option value="12" {% if forecast_period == 12 %}selected{% endif %}>1 Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="model_type">Forecast Model</label>
+                                    <select class="form-control" id="model_type" name="model_type">
+                                        <option value="linear" {% if model_type == 'linear' %}selected{% endif %}>Linear Regression</option>
+                                        <option value="moving_avg" {% if model_type == 'moving_avg' %}selected{% endif %}>Moving Average</option>
+                                        <option value="exponential" {% if model_type == 'exponential' %}selected{% endif %}>Exponential Smoothing</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="category">Category</label>
+                                    <select class="form-control" id="category" name="category">
+                                        <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat.id }}" {% if category == cat.id %}selected{% endif %}>
+                                                {{ cat.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Forecast</button>
+                    </form>
+
+                    {% if forecast_data %}
+                        <div class="chart-container">
+                            <canvas id="forecastChart"></canvas>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Forecast Summary</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Average Predicted Expense:</th>
+                                                    <td>{{ forecast_summary.average }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Maximum Predicted Expense:</th>
+                                                    <td>{{ forecast_summary.maximum }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Minimum Predicted Expense:</th>
+                                                    <td>{{ forecast_summary.minimum }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Total Predicted Expense:</th>
+                                                    <td>{{ forecast_summary.total }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Model Performance</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Model Accuracy:</th>
+                                                    <td>{{ model_metrics.accuracy }}%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Mean Absolute Error:</th>
+                                                    <td>{{ model_metrics.mae }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Root Mean Square Error:</th>
+                                                    <td>{{ model_metrics.rmse }} {{ user_preferences.currency }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Confidence Level:</th>
+                                                    <td>{{ model_metrics.confidence }}%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5>Monthly Forecast Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Month</th>
+                                                <th>Predicted Amount</th>
+                                                <th>Lower Bound</th>
+                                                <th>Upper Bound</th>
+                                                <th>Confidence Interval</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for month in forecast_details %}
+                                            <tr>
+                                                <td>{{ month.date }}</td>
+                                                <td>{{ month.predicted_amount }} {{ user_preferences.currency }}</td>
+                                                <td>{{ month.lower_bound }} {{ user_preferences.currency }}</td>
+                                                <td>{{ month.upper_bound }} {{ user_preferences.currency }}</td>
+                                                <td>{{ month.confidence_interval }}%</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if forecast_data %}
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {{ chart_data.labels|safe }},
+                    datasets: [
+                        {
+                            label: 'Historical Expenses',
+                            data: {{ chart_data.historical|safe }},
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: 'Forecasted Expenses',
+                            data: {{ chart_data.forecast|safe }},
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: 'Upper Bound',
+                            data: {{ chart_data.upper_bound|safe }},
+                            borderColor: 'rgba(200, 200, 200, 1)',
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Lower Bound',
+                            data: {{ chart_data.lower_bound|safe }},
+                            borderColor: 'rgba(200, 200, 200, 1)',
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (' + '{{ user_preferences.currency }}' + ')'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Expense Forecast Analysis'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %} 

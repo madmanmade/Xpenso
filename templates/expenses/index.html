@@ -101,24 +101,28 @@
             <!-- Pagination -->
             {% if expenses.has_other_pages %}
             <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">{%- if expenses.has_previous -%}
+                <ul class="pagination justify-content-center">
+                    {% if expenses.has_previous %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ expenses.previous_page_number }}" aria-label="Previous page">
                             <span aria-hidden="true">&laquo;</span>
                             <span class="visually-hidden">Previous page</span>
                         </a>
-                    </li>{%- endif -%}
-                    {%- for i in expenses.paginator.page_range -%}
+                    </li>
+                    {% endif %}
+                    {% for i in expenses.paginator.page_range %}
                     <li class="page-item {% if expenses.number == i %}active{% endif %}">
                         <a class="page-link" href="?page={{ i }}" {% if expenses.number == i %}aria-current="page"{% endif %}>{{ i }}</a>
-                    </li>{%- endfor -%}
-                    {%- if expenses.has_next -%}
+                    </li>
+                    {% endfor %}
+                    {% if expenses.has_next %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ expenses.next_page_number }}" aria-label="Next page">
                             <span aria-hidden="true">&raquo;</span>
                             <span class="visually-hidden">Next page</span>
                         </a>
-                    </li>{%- endif -%}
+                    </li>
+                    {% endif %}
                 </ul>
             </nav>
             {% endif %}

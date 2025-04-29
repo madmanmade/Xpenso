@@ -17,7 +17,7 @@ import json
 from decimal import Decimal
 from django.db import models
 
-@login_required(login_url='/authentication/login/')
+@login_required(login_url='authentication:login')
 def index(request):
     try:
         expenses = Expense.objects.filter(owner=request.user).order_by('-date')
@@ -35,7 +35,7 @@ def index(request):
         return render(request, 'expenses/index.html', context)
     except Exception as e:
         messages.error(request, f'Error loading expenses: {str(e)}')
-        return redirect('/')
+        return render(request, 'expenses/index.html', {'expenses': [], 'total_expenses': 0, 'categories': []})
 
 @login_required(login_url='authentication:login')
 def add_expense(request):

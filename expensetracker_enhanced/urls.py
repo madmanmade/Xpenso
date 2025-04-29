@@ -22,11 +22,10 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('expenses.urls')),  # Main expense tracking functionality
+    path('', include('expenses.urls')),  # Main expense tracking functionality at root
     path('authentication/', include('authentication.urls')),  # User authentication & registration
     path('preferences/', include('userpreferences.urls')),  # User preferences like currency, theme
     path('income/', include('userincome.urls')),  # Income tracking
-    path('dashboard/', RedirectView.as_view(url='/', permanent=True)),  # Redirect dashboard to home
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Add media files serving in development

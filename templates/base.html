@@ -10,7 +10,7 @@
     
     <!-- Custom CSS -->
     {% load static %}
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -21,51 +21,55 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'expenses' %}">
-                <i class="fas fa-wallet"></i> Expense Tracker
+            <a class="navbar-brand" href="{% url 'expenses' %}" title="Go to Dashboard">
+                <i class="fas fa-wallet" aria-hidden="true"></i> Expense Tracker
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                {% spaceless %}
                 <ul class="navbar-nav me-auto">
                     {% if request.user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'expenses' %}">Expenses</a>
+                        <a class="nav-link" href="{% url 'expenses' %}" title="View Expenses">Expenses</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'add-expense' %}">Add Expense</a>
+                        <a class="nav-link" href="{% url 'add_expense' %}" title="Add New Expense">Add Expense</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'expense-categories' %}">Categories</a>
+                        <a class="nav-link" href="{% url 'manage_categories' %}" title="Manage Categories">Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'expense-report' %}">Reports</a>
+                        <a class="nav-link" href="{% url 'generate_report' %}" title="Generate Reports">Reports</a>
                     </li>
                     {% endif %}
                 </ul>
+                {% endspaceless %}
+                {% spaceless %}
                 <ul class="navbar-nav">
                     {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user"></i> {{ request.user.username }}
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                            <i class="fas fa-user" aria-hidden="true"></i> {{ request.user.username }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{% url 'preferences' %}">Preferences</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'authentication:profile' %}" title="View Profile">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'authentication:preferences' %}" title="Change Preferences">Preferences</a></li>
+                            <li><hr class="dropdown-divider" role="separator"></li>
+                            <li><a class="dropdown-item" href="{% url 'authentication:logout' %}" title="Log Out">Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        <a class="nav-link" href="{% url 'authentication:login' %}" title="Log In">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        <a class="nav-link" href="{% url 'authentication:register' %}" title="Create Account">Register</a>
                     </li>
                     {% endif %}
                 </ul>
+                {% endspaceless %}
             </div>
         </div>
     </nav>

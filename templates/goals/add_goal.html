@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Financial Goal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Add New Financial Goal</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="title">Goal Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="target_amount">Target Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">{{ user_preferences.currency }}</span>
+                                <input type="number" step="0.01" class="form-control" id="target_amount" name="target_amount" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="current_amount">Current Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">{{ user_preferences.currency }}</span>
+                                <input type="number" step="0.01" class="form-control" id="current_amount" name="current_amount" value="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="target_date">Target Date</label>
+                            <input type="date" class="form-control" id="target_date" name="target_date" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="category">Category</label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="savings">Savings</option>
+                                <option value="investment">Investment</option>
+                                <option value="debt">Debt Repayment</option>
+                                <option value="purchase">Major Purchase</option>
+                                <option value="emergency">Emergency Fund</option>
+                                <option value="education">Education</option>
+                                <option value="retirement">Retirement</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="priority">Priority</label>
+                            <select class="form-control" id="priority" name="priority" required>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="{% url 'goals_list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Goal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default start date to today
+        document.getElementById('start_date').valueAsDate = new Date();
+        
+        // Amount validation
+        document.getElementById('target_amount').addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+        
+        document.getElementById('current_amount').addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+            const targetAmount = parseFloat(document.getElementById('target_amount').value) || 0;
+            if (this.value > targetAmount) {
+                this.value = targetAmount;
+            }
+        });
+        
+        // Date validation
+        document.getElementById('target_date').addEventListener('change', function() {
+            const startDate = document.getElementById('start_date').value;
+            if (this.value < startDate) {
+                this.value = startDate;
+            }
+        });
+    });
+</script>
+{% endblock %} 

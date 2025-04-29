@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="Profile Picture" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 100px; height: 100px;">
+                                    <span class="h1">{{ user.username|make_list|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                            <p class="text-muted mb-2">{{ user.email }}</p>
+                            <p class="mb-0">Member since: {{ user.date_joined|date:"F j, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'authentication:update_profile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="avatar" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Account Settings</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Change Password Form -->
+                    <form method="post" action="{% url 'authentication:change_password' %}" class="mb-4">
+                        {% csrf_token %}
+                        <h6 class="mb-3">Change Password</h6>
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+
+                    <!-- Notification Settings -->
+                    <form method="post" action="{% url 'authentication:update_notifications' %}">
+                        {% csrf_token %}
+                        <h6 class="mb-3">Notification Settings</h6>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if user.profile.email_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="budget_alerts" name="budget_alerts" {% if user.profile.budget_alerts %}checked{% endif %}>
+                                <label class="form-check-label" for="budget_alerts">Budget Alerts</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="goal_reminders" name="goal_reminders" {% if user.profile.goal_reminders %}checked{% endif %}>
+                                <label class="form-check-label" for="goal_reminders">Goal Reminders</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Actions -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt"></i> Account Security</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Two-Factor Authentication</h6>
+                            <p class="text-muted">Add an extra layer of security to your account.</p>
+                            <button class="btn btn-outline-primary" onclick="window.location.href='{% url 'authentication:setup_2fa' %}'">
+                                {% if user.profile.two_factor_enabled %}
+                                    Manage 2FA
+                                {% else %}
+                                    Enable 2FA
+                                {% endif %}
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delete Account</h6>
+                            <p class="text-muted">Permanently delete your account and all associated data.</p>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">Warning: This action cannot be undone. All your data will be permanently deleted.</p>
+                <form method="post" action="{% url 'authentication:delete_account' %}" id="deleteAccountForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Enter your password to confirm</label>
+                        <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="deleteAccountForm" class="btn btn-danger">Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header {% if message.tags %}bg-{{ message.tags }}{% endif %}">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function(toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 5000
+        });
+    });
+
+    // Password confirmation validation
+    document.getElementById('deleteAccountForm').addEventListener('submit', function(e) {
+        if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+            e.preventDefault();
+        }
+    });
+
+    // Password match validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        var password = document.getElementById('new_password').value;
+        var confirm = this.value;
+        
+        if (password !== confirm) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -3,6 +3,19 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from .models import UserProfile, UserPreference
+
+@receiver(post_save, sender=User)
+def create_user_profile_and_preferences(sender, instance, created, **kwargs):
+    """
+    Create UserProfile and UserPreference when a new user is created
+    """
+    if created:
+        # Create UserProfile
+        UserProfile.objects.create(user=instance)
+        
+        # Create UserPreference
+        UserPreference.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def send_welcome_email(sender, instance, created, **kwargs):

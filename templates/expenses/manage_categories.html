@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Categories - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tags"></i> Manage Categories</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Add New Category">
+            <i class="fas fa-plus" aria-hidden="true"></i> Add Category
+        </button>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Categories List -->
+    <div class="card">
+        <div class="card-body">
+            {% if categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Color</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ category.color }}">
+                                            {{ category.name }}
+                                        </span>
+                                    </td>
+                                    <td>{{ category.description|default:"-" }}</td>
+                                    <td>
+                                        <div class="color-preview" style="width: 25px; height: 25px; background-color: {{ category.color }}; border-radius: 4px;"></div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-2" 
+                                                onclick="editCategory('{{ category.id }}', '{{ category.name }}', '{{ category.description }}', '{{ category.color }}')"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editCategoryModal"
+                                                title="Edit {{ category.name }}">
+                                            <i class="fas fa-edit" aria-hidden="true"></i>
+                                            <span class="visually-hidden">Edit {{ category.name }}</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                onclick="confirmDelete('{{ category.id }}', '{{ category.name }}')"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteCategoryModal"
+                                                title="Delete {{ category.name }}">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                            <span class="visually-hidden">Delete {{ category.name }}</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <p class="text-muted">No categories found. Click "Add Category" to create one.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'add_category' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryColor" class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" id="categoryColor" name="color" value="#563d7c">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="editCategoryForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editCategoryId" name="category_id">
+                    <div class="mb-3">
+                        <label for="editCategoryName" class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="editCategoryName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCategoryDescription" class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCategoryColor" class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" id="editCategoryColor" name="color">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Category Modal -->
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="deleteCategoryForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteCategoryModalLabel">Delete Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the category "<span id="deleteCategoryName"></span>"?</p>
+                    <p class="text-danger">This action cannot be undone, and all expenses in this category will need to be reassigned.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editCategory(id, name, description, color) {
+    document.getElementById('editCategoryId').value = id;
+    document.getElementById('editCategoryName').value = name;
+    document.getElementById('editCategoryDescription').value = description || '';
+    document.getElementById('editCategoryColor').value = color;
+    document.getElementById('editCategoryForm').action = `/expenses/categories/edit/${id}/`;
+}
+
+function confirmDelete(id, name) {
+    document.getElementById('deleteCategoryName').textContent = name;
+    document.getElementById('deleteCategoryForm').action = `/expenses/categories/delete/${id}/`;
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %} 
