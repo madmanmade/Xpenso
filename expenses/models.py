@@ -31,7 +31,7 @@ class Expense(models.Model):
     date = models.DateField()
     description = models.TextField(blank=True, null=True)
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='cash')
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

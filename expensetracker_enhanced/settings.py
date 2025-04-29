@@ -15,15 +15,14 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+import os
 
-def get_env_value(env_variable):
-    try:
-        return os.environ[env_variable]
-    except KeyError:
-        error_msg = f'Set the {env_variable} environment variable'
-        raise ImproperlyConfigured(error_msg)
+load_dotenv()  # Load environment variables from .env
+
+def get_env_value(env_variable, default=None):
+    """Get environment variable value with a default."""
+
+    return os.environ.get(env_variable, default)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,12 +32,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env_value('DJANGO_SECRET_KEY')
+
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+
+
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -51,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'channels',
     # Custom apps
     'expenses',
@@ -65,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -97,11 +101,8 @@ ASGI_APPLICATION = 'expensetracker_enhanced.asgi.application'
 # Channel layer settings
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(get_env_value('REDIS_HOST'), int(get_env_value('REDIS_PORT')))],
-        },
-    },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
 }
 
 # Database
@@ -109,12 +110,8 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_env_value('DB_NAME'),
-        'USER': get_env_value('DB_USER'),
-        'PASSWORD': get_env_value('DB_PASSWORD'),
-        'HOST': get_env_value('DB_HOST'),
-        'PORT': get_env_value('DB_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -173,9 +170,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication settings
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'expenses'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = '/authentication/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/authentication/login/'
 
 # Rest Framework settings
 REST_FRAMEWORK = {
@@ -199,7 +196,7 @@ REST_FRAMEWORK = {
 }
 
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = get_env_value('EMAIL_HOST')
 EMAIL_PORT = int(get_env_value('EMAIL_PORT'))
 EMAIL_USE_TLS = True
@@ -207,13 +204,10 @@ EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
 
 # Cache settings
-REDIS_HOST = get_env_value('REDIS_HOST')
-REDIS_PORT = get_env_value('REDIS_PORT')
-
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/1',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
@@ -242,6 +236,9 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    CSRF_USE_SESSIONS = True
+    CSRF_COOKIE_SAMESITE = 'Strict'
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
@@ -249,28 +246,26 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-# Celery settings for background tasks
-CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
+# Celery settings for development (using local memory)
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'cache'
+CELERY_CACHE_BACKEND = 'memory'
+CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
 
 # Custom settings for expense tracking
-MAX_EXPENSE_AMOUNT = float(os.environ.get('MAX_EXPENSE_AMOUNT', '1000000'))
-EXPENSE_CATEGORIES_LIMIT = int(os.environ.get('EXPENSE_CATEGORIES_LIMIT', '50'))
-EXPENSE_PAGINATION_SIZE = int(os.environ.get('EXPENSE_PAGINATION_SIZE', '20'))
+MAX_EXPENSE_AMOUNT = float(get_env_value('MAX_EXPENSE_AMOUNT', '1000000'))
+EXPENSE_CATEGORIES_LIMIT = int(get_env_value('EXPENSE_CATEGORIES_LIMIT', '50'))
+EXPENSE_PAGINATION_SIZE = int(get_env_value('EXPENSE_PAGINATION_SIZE', '20'))
 EXPENSE_EXPORT_FORMATS = ['csv', 'pdf', 'xlsx']
 
 # ML Model settings
 ML_MODEL_PATH = os.path.join(BASE_DIR, 'ml_models')
-RETRAIN_MODEL_INTERVAL = int(os.environ.get('RETRAIN_MODEL_INTERVAL', '7'))
-MIN_SAMPLES_FOR_TRAINING = int(os.environ.get('MIN_SAMPLES_FOR_TRAINING', '100'))
+RETRAIN_MODEL_INTERVAL = int(get_env_value('RETRAIN_MODEL_INTERVAL', '7'))
+MIN_SAMPLES_FOR_TRAINING = int(get_env_value('MIN_SAMPLES_FOR_TRAINING', '10'))
 
 # Report Generation settings
 REPORT_STORAGE_PATH = os.path.join(BASE_DIR, 'generated_reports')
-REPORT_RETENTION_DAYS = int(os.environ.get('REPORT_RETENTION_DAYS', '30'))
+REPORT_RETENTION_DAYS = int(get_env_value('REPORT_RETENTION_DAYS', '30'))
 
 # Budget Alert settings
 BUDGET_ALERT_THRESHOLDS = [int(x) for x in os.environ.get('BUDGET_ALERT_THRESHOLDS', '50,75,90').split(',')]

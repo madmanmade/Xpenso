@@ -15,8 +15,9 @@ from django.conf import settings
 from datetime import datetime, timedelta
 import json
 from decimal import Decimal
+from django.db import models
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='/authentication/login/')
 def index(request):
     try:
         expenses = Expense.objects.filter(owner=request.user).order_by('-date')
@@ -25,7 +26,7 @@ def index(request):
         page_obj = paginator.get_page(page_number)
         
         total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
-        
+    
         context = {
             'expenses': page_obj,
             'total_expenses': total_expenses,
@@ -34,9 +35,9 @@ def index(request):
         return render(request, 'expenses/index.html', context)
     except Exception as e:
         messages.error(request, f'Error loading expenses: {str(e)}')
-        return redirect('dashboard')
+        return redirect('/')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def add_expense(request):
     try:
         if request.method == 'POST':
@@ -63,7 +64,7 @@ def add_expense(request):
         messages.error(request, f'Error adding expense: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def expense_edit(request, id):
     try:
         expense = get_object_or_404(Expense, pk=id, owner=request.user)
@@ -94,7 +95,7 @@ def expense_edit(request, id):
         messages.error(request, f'Error editing expense: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def delete_expense(request, id):
     try:
         expense = get_object_or_404(Expense, pk=id, owner=request.user)
@@ -106,7 +107,7 @@ def delete_expense(request, id):
         messages.error(request, f'Error deleting expense: {str(e)}')
     return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def expense_category_summary(request):
     expenses = Expense.objects.filter(owner=request.user)
     categories = Category.objects.filter(owner=request.user)
@@ -125,7 +126,7 @@ def expense_category_summary(request):
     
     return JsonResponse({'expense_category_data': summary})
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def predict_category(request):
     if request.method == 'POST':
         description = request.POST.get('description', '').strip()
@@ -134,7 +135,7 @@ def predict_category(request):
                 'success': False,
                 'error': 'Description is required'
             }, status=400)
-            
+        
         try:
             predictor = ExpenseCategoryPredictor()
             model_path = os.path.join(settings.BASE_DIR, 'expenses', 'trained_model.joblib')
@@ -154,7 +155,6 @@ def predict_category(request):
                 'success': True,
                 'predictions': formatted_predictions
             })
-            
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -167,7 +167,7 @@ def predict_category(request):
         'message': 'This endpoint requires a POST request with a description field'
     }, status=405)
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def train_expense_model(request):
     if request.method == 'POST':
         try:
@@ -187,7 +187,7 @@ def train_expense_model(request):
         'error': 'Invalid request method'
     }, status=405)
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def search_expenses(request):
     try:
         if request.method == 'GET':
@@ -227,7 +227,7 @@ def search_expenses(request):
             'error': str(e)
         }, status=500)
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def export_expenses(request):
     try:
         expenses = Expense.objects.filter(owner=request.user).order_by('-date')
@@ -252,7 +252,7 @@ def export_expenses(request):
         messages.error(request, f'Error exporting expenses: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def expense_statistics(request):
     try:
         expenses = Expense.objects.filter(owner=request.user)
@@ -294,7 +294,7 @@ def expense_statistics(request):
         messages.error(request, f'Error loading statistics: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def monthly_summary(request):
     expenses = Expense.objects.filter(owner=request.user)
     
@@ -319,7 +319,7 @@ def monthly_summary(request):
         } for item in last_12_months]
     })
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def yearly_summary(request):
     expenses = Expense.objects.filter(owner=request.user)
     
@@ -337,7 +337,7 @@ def yearly_summary(request):
         'yearly_summary': list(yearly_data)
     })
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def payment_method_summary(request):
     expenses = Expense.objects.filter(owner=request.user)
     
@@ -360,7 +360,7 @@ def payment_method_summary(request):
         } for item in payment_summary]
     })
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def manage_categories(request):
     try:
         categories = Category.objects.filter(owner=request.user)
@@ -373,7 +373,7 @@ def manage_categories(request):
         messages.error(request, f'Error loading categories: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def add_category(request):
     try:
         if request.method == 'POST':
@@ -391,7 +391,7 @@ def add_category(request):
         messages.error(request, f'Error adding category: {str(e)}')
         return redirect('manage_categories')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def delete_category(request, id):
     try:
         category = get_object_or_404(Category, pk=id, owner=request.user)
@@ -406,7 +406,7 @@ def delete_category(request, id):
         messages.error(request, f'Error deleting category: {str(e)}')
     return redirect('manage_categories')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def manage_budget(request):
     try:
         budgets = Budget.objects.filter(owner=request.user)
@@ -419,7 +419,7 @@ def manage_budget(request):
         messages.error(request, f'Error loading budgets: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def add_budget(request):
     try:
         if request.method == 'POST':
@@ -437,7 +437,7 @@ def add_budget(request):
         messages.error(request, f'Error adding budget: {str(e)}')
         return redirect('manage_budget')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def edit_budget(request, id):
     try:
         budget = get_object_or_404(Budget, pk=id, owner=request.user)
@@ -463,7 +463,7 @@ def edit_budget(request, id):
         messages.error(request, f'Error editing budget: {str(e)}')
         return redirect('manage_budget')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def delete_budget(request, id):
     try:
         budget = get_object_or_404(Budget, pk=id, owner=request.user)
@@ -475,7 +475,7 @@ def delete_budget(request, id):
         messages.error(request, f'Error deleting budget: {str(e)}')
     return redirect('manage_budget')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def generate_report(request):
     try:
         # Get date range from request
@@ -520,7 +520,7 @@ def generate_report(request):
         messages.error(request, f'Error generating report: {str(e)}')
         return redirect('expenses')
 
-@login_required(login_url='/authentication/login')
+@login_required(login_url='authentication:login')
 def download_report(request, report_id):
     try:
         # Validate report ID format and ownership
