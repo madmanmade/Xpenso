@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expense Forecast Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Expense Forecast Dashboard</h4>
+                </div>
+                <div class="card-body">
+                    <form id="forecastForm" method="post" action="{% url 'generate_forecast' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="forecast_period">Forecast Period</label>
+                                    <select class="form-control" id="forecast_period" name="forecast_period">
+                                        <option value="1">1 Month</option>
+                                        <option value="3">3 Months</option>
+                                        <option value="6">6 Months</option>
+                                        <option value="12">1 Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="model_type">Forecast Model</label>
+                                    <select class="form-control" id="model_type" name="model_type">
+                                        <option value="linear">Linear Regression</option>
+                                        <option value="moving_avg">Moving Average</option>
+                                        <option value="exponential">Exponential Smoothing</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="category">Category</label>
+                                    <select class="form-control" id="category" name="category">
+                                        <option value="all">All Categories</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Forecast</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Graphical Prediction Model (Line Chart) -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Future Expense Trends (Prediction)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="80"></canvas>
+                </div>
+            </div>
+            <!-- Pie Chart for Category-wise Expenses -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Expense Distribution by Category</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryPieChart" height="80"></canvas>
+                </div>
+            </div>
+            <!-- Forecast Results Card -->
+            <div id="forecastResults" class="card mb-4 d-none">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Forecast Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="forecastTableContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// --- Pie Chart for Category-wise Expenses ---
+fetch("{% url 'category_expense_summary' %}")
+  .then(response => response.json())
+  .then(data => {
+    const ctxPie = document.getElementById('categoryPieChart').getContext('2d');
+    const labels = data.summary.map(item => item.category);
+    const totals = data.summary.map(item => item.total);
+    new Chart(ctxPie, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: totals,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#8BC34A', '#E91E63', '#00BCD4'
+          ],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                return `${label}: ₹${value.toLocaleString()}`;
+              }
+            }
+          },
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  });
+
+// --- Graphical Prediction Model (Line Chart) ---
+// Dummy data for now; replace with AJAX call to your forecast endpoint if available
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const historical = [1200, 1350, 1100, 1450, 1600, 1700, 1550, 1800, 1750, 1900, 2000, 2100];
+const forecast = [2200, 2300, 2400, 2500];
+const allLabels = months.concat(["Next 1", "Next 2", "Next 3", "Next 4"]);
+const allData = historical.concat(forecast);
+new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: allLabels,
+    datasets: [{
+      label: 'Expense (₹)',
+      data: allData,
+      borderColor: 'rgba(54, 162, 235, 1)',
+      backgroundColor: 'rgba(54, 162, 235, 0.2)',
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `₹${context.parsed.y.toLocaleString()}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Amount (₹)' }
+      },
+      x: {
+        title: { display: true, text: 'Month' }
+      }
+    }
+  }
+});
+
+// --- Forecast Form Submission and Results Display ---
+document.getElementById('forecastForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultsCard = document.getElementById('forecastResults');
+        const tableContainer = document.getElementById('forecastTableContainer');
+        if (data.forecast && data.forecast.length > 0) {
+            let html = '<div class="table-responsive"><table class="table table-bordered table-striped align-middle">';
+            html += '<thead class="table-primary"><tr><th>Month</th><th>Forecasted Expense (₹)</th><th>Confidence Interval (₹)</th></tr></thead><tbody>';
+            for (let i = 0; i < data.forecast.length; i++) {
+                const month = `Month ${i+1}`;
+                const value = data.forecast[i].toLocaleString();
+                const ci = data.confidence_interval[i];
+                html += `<tr><td>${month}</td><td><strong>₹${value}</strong></td><td><span class='badge bg-info text-dark'>₹${ci[0].toLocaleString()} - ₹${ci[1].toLocaleString()}</span></td></tr>`;
+            }
+            html += '</tbody></table></div>';
+            tableContainer.innerHTML = html;
+            resultsCard.classList.remove('d-none');
+        } else {
+            tableContainer.innerHTML = '<div class="alert alert-warning">Not enough data to generate a forecast. Please add more expenses.</div>';
+            resultsCard.classList.remove('d-none');
+        }
+        window.scrollTo({ top: resultsCard.offsetTop - 80, behavior: 'smooth' });
+    })
+    .catch(() => {
+        const resultsCard = document.getElementById('forecastResults');
+        const tableContainer = document.getElementById('forecastTableContainer');
+        tableContainer.innerHTML = '<div class="alert alert-danger">An error occurred while generating the forecast.</div>';
+        resultsCard.classList.remove('d-none');
+    });
+});
+</script>
+{% endblock %} 

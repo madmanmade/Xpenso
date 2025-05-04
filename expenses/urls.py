@@ -12,6 +12,7 @@ urlpatterns = [
     # Category management
     path('categories/', views.manage_categories, name='manage_categories'),
     path('categories/add/', views.add_category, name='add_category'),
+    path('categories/edit/<int:id>/', views.edit_category, name='edit_category'),
     path('categories/delete/<int:id>/', views.delete_category, name='delete_category'),
     path('category-summary/', views.expense_category_summary, name='expense_category_summary'),
     
@@ -38,4 +39,6 @@ urlpatterns = [
     # Reports
     path('reports/generate/', views.generate_report, name='generate_report'),
     path('reports/download/<str:report_id>/', views.download_report, name='download_report'),
+    path('all/', views.all_expenses, name='all_expenses'),
+    path('reports/', views.reports_page, name='reports_page'),
 ]

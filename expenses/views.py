@@ -7,6 +7,7 @@ from django.db.models import Sum, Count, Avg
 from django.db.models.functions import TruncMonth
 from django.core.exceptions import PermissionDenied
 from .models import Expense, Category, Budget
+from goals.models import FinancialGoal, SavingsGoal
 from .forms import ExpenseForm, CategoryForm, BudgetForm
 from .ml_models import ExpenseCategoryPredictor, train_and_save_model
 import os
@@ -16,26 +17,46 @@ from datetime import datetime, timedelta
 import json
 from decimal import Decimal
 from django.db import models
+from openpyxl import Workbook
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
 
 @login_required(login_url='authentication:login')
 def index(request):
     try:
+        # Get expenses with pagination
         expenses = Expense.objects.filter(owner=request.user).order_by('-date')
-        paginator = Paginator(expenses, settings.EXPENSE_PAGINATION_SIZE)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
+        category_id = request.GET.get('category')
+        if category_id:
+            expenses = expenses.filter(category_id=category_id)
         total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
-    
+        
+        # Get active goals
+        active_goals = FinancialGoal.objects.filter(user=request.user, status='ACTIVE')
+        
+        # Get savings goals
+        savings_goals = SavingsGoal.objects.filter(owner=request.user).order_by('-created_at')
+        total_savings = sum(goal.current_amount for goal in savings_goals)
+        
         context = {
-            'expenses': page_obj,
+            'expenses': expenses,
             'total_expenses': total_expenses,
-            'categories': Category.objects.filter(owner=request.user)
+            'categories': Category.objects.filter(owner=request.user),
+            'active_goals': active_goals,
+            'savings_goals': savings_goals,
+            'total_savings': total_savings
         }
         return render(request, 'expenses/index.html', context)
     except Exception as e:
-        messages.error(request, f'Error loading expenses: {str(e)}')
-        return render(request, 'expenses/index.html', {'expenses': [], 'total_expenses': 0, 'categories': []})
+        messages.error(request, f'Error loading dashboard: {str(e)}')
+        return render(request, 'expenses/index.html', {
+            'expenses': [],
+            'total_expenses': 0,
+            'categories': [],
+            'active_goals': [],
+            'savings_goals': [],
+            'total_savings': 0
+        })
 
 @login_required(login_url='authentication:login')
 def add_expense(request):
@@ -407,6 +428,36 @@ def delete_category(request, id):
     return redirect('manage_categories')
 
 @login_required(login_url='authentication:login')
+def edit_category(request, id):
+    try:
+        category = get_object_or_404(Category, pk=id, owner=request.user)
+        
+        if request.method == 'POST':
+            form = CategoryForm(request.POST, instance=category)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Category updated successfully')
+                return redirect('manage_categories')
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+        else:
+            form = CategoryForm(instance=category)
+        
+        context = {
+            'category': category,
+            'form': form
+        }
+        return render(request, 'expenses/edit_category.html', context)
+    except PermissionDenied:
+        messages.error(request, 'You do not have permission to edit this category')
+        return redirect('manage_categories')
+    except Exception as e:
+        messages.error(request, f'Error editing category: {str(e)}')
+        return redirect('manage_categories')
+
+@login_required(login_url='authentication:login')
 def manage_budget(request):
     try:
         budgets = Budget.objects.filter(owner=request.user)
@@ -547,4 +598,106 @@ def download_report(request, report_id):
     except Exception as e:
         messages.error(request, f'Error downloading report: {str(e)}')
         return redirect('expenses')
+
+@login_required(login_url='authentication:login')
+def all_expenses(request):
+    expenses = Expense.objects.filter(owner=request.user).order_by('-date')
+    categories = Category.objects.filter(owner=request.user)
+    category_id = request.GET.get('category')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if category_id:
+        expenses = expenses.filter(category_id=category_id)
+    if start_date:
+        expenses = expenses.filter(date__gte=start_date)
+    if end_date:
+        expenses = expenses.filter(date__lte=end_date)
+
+    context = {
+        'expenses': expenses,
+        'categories': categories,
+        'selected_category': category_id,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'expenses/all_expenses.html', context)
+
+@login_required(login_url='authentication:login')
+def reports_page(request):
+    expenses = Expense.objects.filter(owner=request.user).order_by('-date')
+    categories = Category.objects.filter(owner=request.user)
+    category_id = request.GET.get('category')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    export_format = request.GET.get('format')
+
+    # Resolve selected_category_name
+    selected_category_name = None
+    if category_id:
+        try:
+            selected_category_obj = categories.get(id=category_id)
+            selected_category_name = selected_category_obj.name
+        except Category.DoesNotExist:
+            selected_category_name = None
+
+    if category_id:
+        expenses = expenses.filter(category_id=category_id)
+    if start_date:
+        expenses = expenses.filter(date__gte=start_date)
+    if end_date:
+        expenses = expenses.filter(date__lte=end_date)
+
+    if export_format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="expenses_report.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Date', 'Category', 'Description', 'Amount'])
+        for expense in expenses:
+            writer.writerow([
+                expense.date.strftime('%Y-%m-%d'),
+                expense.get_category_name(),
+                expense.description,
+                expense.amount
+            ])
+        return response
+    elif export_format == 'xlsx':
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Expenses'
+        ws.append(['Date', 'Category', 'Description', 'Amount'])
+        for expense in expenses:
+            ws.append([
+                expense.date.strftime('%Y-%m-%d'),
+                expense.get_category_name(),
+                expense.description,
+                float(expense.amount)
+            ])
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="expenses_report.xlsx"'
+        wb.save(response)
+        return response
+    elif export_format == 'pdf':
+        html = render_to_string('expenses/reports_pdf_template.html', {
+            'expenses': expenses,
+            'categories': categories,
+            'selected_category': category_id,
+            'selected_category_name': selected_category_name,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="expenses_report.pdf"'
+        pisa.CreatePDF(html, dest=response)
+        return response
+
+    context = {
+        'expenses': expenses,
+        'categories': categories,
+        'selected_category': category_id,
+        'selected_category_name': selected_category_name,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'expenses/reports_page.html', context)
 

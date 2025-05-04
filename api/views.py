@@ -1,11 +1,14 @@
 from django.shortcuts import render
+from django.db.models import Sum, Avg, Count, Q, F, ExpressionWrapper, FloatField, DurationField
+from django.db.models.functions import TruncMonth
+from datetime import datetime
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from expenses.models import Expense, Category
-from userincome.models import Income
-from goals.models import Goal
+from userincome.models import UserIncome
+from goals.models import FinancialGoal
 from .serializers import ExpenseSerializer, CategorySerializer, IncomeSerializer, GoalSerializer
 
 # Create your views here.
@@ -30,7 +33,7 @@ class IncomeViewSet(viewsets.ModelViewSet):
     serializer_class = IncomeSerializer
     
     def get_queryset(self):
-        return Income.objects.filter(owner=self.request.user)
+        return UserIncome.objects.filter(owner=self.request.user)
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -40,10 +43,10 @@ class GoalViewSet(viewsets.ModelViewSet):
     serializer_class = GoalSerializer
     
     def get_queryset(self):
-        return Goal.objects.filter(owner=self.request.user)
+        return FinancialGoal.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -136,7 +139,7 @@ def category_summary(request):
 @permission_classes([IsAuthenticated])
 def income_statistics(request):
     """Get statistical summary of user's income"""
-    user_income = Income.objects.filter(owner=request.user)
+    user_income = UserIncome.objects.filter(owner=request.user)
     
     total_income = user_income.aggregate(total=Sum('amount'))['total'] or 0
     avg_income = user_income.aggregate(avg=Avg('amount'))['avg'] or 0
@@ -159,7 +162,7 @@ def income_statistics(request):
 @permission_classes([IsAuthenticated])
 def goal_progress(request):
     """Get progress summary of user's financial goals"""
-    user_goals = Goal.objects.filter(user=request.user)
+    user_goals = FinancialGoal.objects.filter(user=request.user)
     
     goals_summary = user_goals.annotate(
         progress_percentage=ExpressionWrapper(

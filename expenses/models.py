@@ -31,6 +31,7 @@ class Expense(models.Model):
     date = models.DateField()
     description = models.TextField(blank=True, null=True)
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='cash')
+    receipt = models.FileField(upload_to='expense_receipts/', blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,6 +55,7 @@ class Expense(models.Model):
             'category': self.get_category_name(),
             'payment_method': self.get_payment_method_display(),
             'date': self.date.strftime('%Y-%m-%d'),
+            'receipt': self.receipt.url if self.receipt else None,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
             'owner': self.owner.username

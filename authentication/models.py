@@ -7,9 +7,13 @@ from django.db import models
 class UserProfile(models.Model):
     """Extended user profile model with additional fields"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='profile_avatars/', null=True, blank=True)
     currency_preference = models.CharField(max_length=3, default='USD')
     monthly_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     notification_enabled = models.BooleanField(default=True)
+    email_notifications = models.BooleanField(default=True)
+    budget_alerts = models.BooleanField(default=True)
+    goal_reminders = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

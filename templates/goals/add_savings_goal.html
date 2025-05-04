@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if goal %}Edit{% else %}Add{% endif %} Savings Goal - Xpenso{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-piggy-bank"></i> 
+                        {% if goal %}Edit{% else %}Add New{% endif %} Savings Goal
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="savingsGoalForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">Goal Title</label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="target_amount" class="form-label fw-bold">Target Amount</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text border-end-0 bg-light" style="border-radius: 25px 0 0 25px;">₹</span>
+                                {{ form.target_amount }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="current_amount" class="form-label fw-bold">Current Savings</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text border-end-0 bg-light" style="border-radius: 25px 0 0 25px;">₹</span>
+                                {{ form.current_amount }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="period" class="form-label fw-bold">Goal Period</label>
+                            {{ form.period }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="start_date" class="form-label fw-bold">Start Date</label>
+                                {{ form.start_date }}
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="end_date" class="form-label fw-bold">End Date (Optional)</label>
+                                {{ form.end_date }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Description (Optional)</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary btn-lg px-4" style="border-radius: 25px;">
+                                <i class="fas fa-save"></i> Save Goal
+                            </button>
+                            <a href="{% url 'savings_goals_list' %}" class="btn btn-secondary btn-lg px-4" style="border-radius: 25px;">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today if adding new goal
+    {% if not goal %}
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').value = today;
+    {% endif %}
+});
+</script>
+{% endblock %} 

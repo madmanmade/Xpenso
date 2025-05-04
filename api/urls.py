@@ -2,7 +2,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     ExpenseViewSet, CategoryViewSet, IncomeViewSet, GoalViewSet,
-    predict_category, generate_report, generate_forecast
+    predict_category, generate_report, generate_forecast,
+    expense_statistics, expenses_by_category, monthly_expenses,
+    category_summary, income_statistics, goal_progress
 )
 
 router = DefaultRouter()

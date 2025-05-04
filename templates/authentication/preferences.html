@@ -24,20 +24,6 @@
                             </div>
                         </div>
 
-                        <!-- Language Settings -->
-                        <div class="mb-4">
-                            <h5 class="mb-3">Language Settings</h5>
-                            <div class="mb-3">
-                                <label for="language" class="form-label">Preferred Language</label>
-                                <select class="form-select" id="language" name="language">
-                                    <option value="en" {% if preferences.language == 'en' %}selected{% endif %}>English</option>
-                                    <option value="es" {% if preferences.language == 'es' %}selected{% endif %}>Spanish</option>
-                                    <option value="fr" {% if preferences.language == 'fr' %}selected{% endif %}>French</option>
-                                    <option value="de" {% if preferences.language == 'de' %}selected{% endif %}>German</option>
-                                </select>
-                            </div>
-                        </div>
-
                         <!-- Notification Settings -->
                         <div class="mb-4">
                             <h5 class="mb-3">Notification Settings</h5>
@@ -111,8 +97,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle dark mode toggle
     const darkModeToggle = document.getElementById('dark_mode');
     if (darkModeToggle) {
+        // Set toggle state from localStorage if available
+        if (localStorage.getItem('darkMode') === 'true') {
+            darkModeToggle.checked = true;
+        } else if (localStorage.getItem('darkMode') === 'false') {
+            darkModeToggle.checked = false;
+        }
         darkModeToggle.addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
+            if (typeof window.toggleDarkMode === 'function') {
+                window.toggleDarkMode(this.checked);
+            }
         });
     }
 });

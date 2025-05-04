@@ -29,7 +29,6 @@ def update_preferences(request):
         # Update basic preferences
         user_preferences.currency = request.POST.get('currency', user_preferences.currency)
         user_preferences.theme = request.POST.get('theme', user_preferences.theme)
-        user_preferences.language = request.POST.get('language', user_preferences.language)
         user_preferences.timezone = request.POST.get('timezone', user_preferences.timezone)
         
         # Update numerical preferences
@@ -539,8 +538,6 @@ def import_preferences(request):
                     user_preferences.currency = value
                 elif setting == 'Theme' and value in ['light', 'dark']:
                     user_preferences.theme = value
-                elif setting == 'Language' and value in ['en', 'es', 'fr', 'de']:
-                    user_preferences.language = value
                 elif setting == 'Timezone' and value in pytz.all_timezones:
                     user_preferences.timezone = value
                     

@@ -7,7 +7,6 @@ class UserPreference(models.Model):
     theme = models.CharField(max_length=20, default='light')
     notification_enabled = models.BooleanField(default=True)
     budget_alert_threshold = models.IntegerField(default=80)  # Percentage
-    language = models.CharField(max_length=10, default='en')
     timezone = models.CharField(max_length=50, default='UTC')
     expense_categories = models.JSONField(default=dict)  # Store custom expense categories
     income_categories = models.JSONField(default=dict)  # Store custom income categories
@@ -15,6 +14,10 @@ class UserPreference(models.Model):
     savings_goal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     email_notifications = models.BooleanField(default=True)
     mobile_notifications = models.BooleanField(default=False)
+    dark_mode = models.BooleanField(default=False)
+    push_notifications = models.BooleanField(default=False)
+    weekly_report = models.BooleanField(default=False)
+    monthly_report = models.BooleanField(default=False)
     
     class Meta:
         verbose_name = 'User Preference'

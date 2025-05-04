@@ -29,7 +29,7 @@
                         <div class="progress-bar" 
                              role="progressbar" 
                              aria-label="Goal Progress"
-                             aria-valuenow="{{ progress }}" 
+                             aria-valuenow="{{ progress|default:'0' }}" 
                              aria-valuemin="0" 
                              aria-valuemax="100"
                              title="Progress: {{ goal.progress|floatformat:1 }}%"

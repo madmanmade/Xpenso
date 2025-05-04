@@ -23,7 +23,7 @@
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h5 class="card-title">Total Expenses</h5>
-                    <h3 class="card-text">${{ total_expenses|floatformat:2 }}</h3>
+                    <h3 class="card-text">₹{{ total_expenses|floatformat:2 }}</h3>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5 class="card-title">Average Expense</h5>
-                    <h3 class="card-text">${{ avg_expense|floatformat:2 }}</h3>
+                    <h3 class="card-text">₹{{ avg_expense|floatformat:2 }}</h3>
                 </div>
             </div>
         </div>
@@ -117,7 +117,7 @@
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                return '$' + value.toLocaleString();
+                                return '₹' + value.toLocaleString();
                             }
                         }
                     }
@@ -126,7 +126,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return '$' + context.raw.toLocaleString();
+                                return '₹' + context.raw.toLocaleString();
                             }
                         }
                     }
@@ -165,7 +165,7 @@
                                 const value = context.raw;
                                 const total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                                 const percentage = ((value / total) * 100).toFixed(1);
-                                return label + ': $' + value.toLocaleString() + ' (' + percentage + '%)';
+                                return label + ': ₹' + value.toLocaleString() + ' (' + percentage + '%)';
                             }
                         }
                     }
@@ -200,7 +200,7 @@
                                 const value = context.raw;
                                 const total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                                 const percentage = ((value / total) * 100).toFixed(1);
-                                return label + ': $' + value.toLocaleString() + ' (' + percentage + '%)';
+                                return label + ': ₹' + value.toLocaleString() + ' (' + percentage + '%)';
                             }
                         }
                     }

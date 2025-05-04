@@ -17,12 +17,16 @@ urlpatterns = [
     path('setup-2fa/', views.setup_2fa, name='setup_2fa'),
     path('delete-account/', views.delete_account, name='delete_account'),
     
+    # Account Activation URL
+    path('activate/<str:uidb64>/<str:token>/', views.activate_account, name='activate_account'),
+    
     # Password Reset URLs
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(
              template_name='authentication/password_reset.html',
              email_template_name='authentication/password_reset_email.html',
-             subject_template_name='authentication/password_reset_subject.txt'
+             subject_template_name='authentication/password_reset_subject.txt',
+             success_url='/authentication/password-reset/done/'
          ),
          name='password_reset'),
     path('password-reset/done/',

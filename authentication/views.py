@@ -6,8 +6,32 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.template.context_processors import csrf
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Create your views here.
+
+def activate_account(request, uidb64, token):
+    try:
+        # Decode the user ID from base64
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    # Check if the user exists and token is valid
+    if user is not None and default_token_generator.check_token(user, token):
+        # Activate the user
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Your account has been activated successfully! You can now log in.')
+        return redirect('authentication:login')
+    else:
+        messages.error(request, 'The activation link is invalid or has expired!')
+        return redirect('authentication:login')
 
 @ensure_csrf_cookie
 def login_view(request):
@@ -51,12 +75,15 @@ def logout_view(request):
     logout(request)
     return redirect('/authentication/login/')
 
+@login_required
 def profile_view(request):
-    if not request.user.is_authenticated:
-        return redirect('authentication:login')
+    user = request.user
+    user_profile = getattr(user, 'profile', None)
+    user_preferences = getattr(user, 'preferences', None)
     return render(request, 'authentication/profile.html', {
-        'user_profile': request.user.profile,
-        'user_preferences': request.user.preferences
+        'user': user,
+        'user_profile': user_profile,
+        'user_preferences': user_preferences
     })
 
 def preferences_view(request):
@@ -66,19 +93,26 @@ def preferences_view(request):
         'preferences': request.user.preferences
     })
 
+@login_required
 def update_profile(request):
-    if not request.user.is_authenticated:
-        return redirect('authentication:login')
-    
     if request.method == 'POST':
-        user_profile = request.user.profile
-        user_profile.currency_preference = request.POST.get('currency_preference', user_profile.currency_preference)
-        user_profile.monthly_budget = request.POST.get('monthly_budget', user_profile.monthly_budget)
-        user_profile.notification_enabled = request.POST.get('notification_enabled', False) == 'on'
-        user_profile.save()
+        user = request.user
+        user_profile = getattr(user, 'profile', None)
+        # Update User model fields
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.save()
+        # Update Profile model fields
+        if user_profile:
+            if 'avatar' in request.FILES:
+                # Optionally delete old avatar file if needed
+                if user_profile.avatar:
+                    user_profile.avatar.delete(save=False)
+                user_profile.avatar = request.FILES['avatar']
+            user_profile.save()
         messages.success(request, 'Profile updated successfully!')
         return redirect('authentication:profile')
-    
     return redirect('authentication:profile')
 
 def update_preferences(request):

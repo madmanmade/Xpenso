@@ -23,9 +23,12 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('expenses.urls')),  # Main expense tracking functionality at root
+    path('api/', include('api.urls')),  # REST API endpoints
     path('authentication/', include('authentication.urls')),  # User authentication & registration
     path('preferences/', include('userpreferences.urls')),  # User preferences like currency, theme
     path('income/', include('userincome.urls')),  # Income tracking
+    path('goals/', include('goals.urls')),  # Financial goals and savings
+    path('forecast/', include('expense_forecast.urls')),  # Expense forecasting functionality
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Add media files serving in development

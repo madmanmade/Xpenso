@@ -3,39 +3,55 @@ from .models import Expense, Category, Budget
 from django.conf import settings
 
 class ExpenseForm(forms.ModelForm):
+    title = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-lg shadow-sm',
+            'placeholder': 'Enter expense title',
+            'style': 'border-radius: 25px;'
+        })
+    )
     amount = forms.DecimalField(
         max_digits=10,
         decimal_places=2,
         widget=forms.NumberInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-lg',
             'placeholder': 'Enter amount'
         })
     )
     description = forms.CharField(
+        required=False,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter expense description'
+            'class': 'form-control form-control-lg shadow-sm',
+            'placeholder': 'Enter expense description (optional)',
+            'style': 'border-radius: 25px;'
         })
     )
     date = forms.DateField(
         widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date'
+            'class': 'form-control form-control-lg shadow-sm',
+            'type': 'date',
+            'style': 'border-radius: 25px;'
         })
     )
     category = forms.ModelChoiceField(
         queryset=None,
         empty_label="Select Category",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg shadow-sm',
+            'style': 'border-radius: 25px;'
+        })
     )
     payment_method = forms.ChoiceField(
         choices=Expense.PAYMENT_METHODS,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={
+            'class': 'form-control form-control-lg shadow-sm',
+            'style': 'border-radius: 25px;'
+        })
     )
     
     class Meta:
         model = Expense
-        fields = ['amount', 'description', 'date', 'category', 'payment_method']
+        fields = ['title', 'amount', 'description', 'category', 'date', 'payment_method', 'receipt']
         exclude = ['owner', 'created_at', 'updated_at']
     
     def __init__(self, *args, user=None, **kwargs):

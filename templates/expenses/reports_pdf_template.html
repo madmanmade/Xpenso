@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Report PDF</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 6px; text-align: left; }
+        th { background: #f2f2f2; }
+        h2 { margin-bottom: 0; }
+        td.description-col {
+            max-width: 250px;
+            word-wrap: break-word;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <h2>Expense Report</h2>
+    <p>
+        {% if selected_category_name %}Category: {{ selected_category_name }}<br>{% endif %}
+        {% if start_date %}Start Date: {{ start_date }}<br>{% endif %}
+        {% if end_date %}End Date: {{ end_date }}<br>{% endif %}
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.date|date:"M d, Y" }}</td>
+                <td>{{ expense.get_category_name }}</td>
+                <td class="description-col">{{ expense.description }}</td>
+                <td>₹{{ expense.amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align:center;">No expenses found for the selected filters.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html> 

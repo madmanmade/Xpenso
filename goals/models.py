@@ -100,3 +100,46 @@ class GoalReminder(models.Model):
             raise ValueError("Reminder date must be in the future")
         self.reminder_date = new_date
         self.save()
+
+class SavingsGoal(models.Model):
+    PERIOD_CHOICES = (
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+        ('custom', 'Custom')
+    )
+
+    title = models.CharField(max_length=200)
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    current_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    period = models.CharField(max_length=10, choices=PERIOD_CHOICES, default='monthly')
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - ₹{self.target_amount}"
+
+    def get_progress_percentage(self):
+        if self.target_amount > 0:
+            return (self.current_amount / self.target_amount) * 100
+        return 0
+
+    def get_remaining_amount(self):
+        return self.target_amount - self.current_amount
+
+    def is_achieved(self):
+        return self.current_amount >= self.target_amount
+
+    def get_days_remaining(self):
+        if not self.end_date:
+            return None
+        today = timezone.now().date()
+        if today > self.end_date:
+            return 0
+        return (self.end_date - today).days
+
+    class Meta:
+        ordering = ['-created_at']

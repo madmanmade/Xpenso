@@ -5,31 +5,36 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white py-3">
                 <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Expense</h4>
             </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'add_expense' %}" id="expenseForm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'add_expense' %}" id="expenseForm" enctype="multipart/form-data">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">Amount</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold">Title</label>
+                        <input type="text" class="form-control form-control-lg shadow-sm" id="title" name="title" required style="border-radius: 25px;" placeholder="Enter expense title">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="amount" class="form-label fw-bold">Amount</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text border-end-0 bg-light" style="border-radius: 25px 0 0 25px;">₹</span>
+                            <input type="number" step="0.01" class="form-control border-start-0" id="amount" name="amount" required style="border-radius: 0 25px 25px 0;">
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <input type="text" class="form-control" id="description" name="description" required>
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold">Description (Optional)</label>
+                        <input type="text" class="form-control form-control-lg shadow-sm" id="description" name="description" style="border-radius: 25px;" placeholder="Enter expense description">
                         <div id="categoryPredictions" class="mt-2"></div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category" required>
+                    <div class="mb-4">
+                        <label for="category" class="form-label fw-bold">Category</label>
+                        <select class="form-select form-select-lg shadow-sm" id="category" name="category" required style="border-radius: 25px;">
                             <option value="">Select a category</option>
                             {% for category in categories %}
                             <option value="{{ category.id }}">{{ category.name }}</option>
@@ -37,26 +42,32 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="expense_date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="expense_date" name="expense_date" required>
+                    <div class="mb-4">
+                        <label for="date" class="form-label fw-bold">Date</label>
+                        <input type="date" class="form-control form-control-lg shadow-sm" id="date" name="date" required style="border-radius: 25px;">
                     </div>
 
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    <div class="mb-4">
+                        <label for="payment_method" class="form-label fw-bold">Payment Method</label>
+                        <select class="form-select form-select-lg shadow-sm" id="payment_method" name="payment_method" required style="border-radius: 25px;">
+                            <option value="">Select payment method</option>
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="upi">UPI</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="receipt" class="form-label">Upload Receipt (Optional)</label>
-                        <input type="file" class="form-control" id="receipt" name="receipt" accept="image/*,.pdf">
+                    <div class="mb-4">
+                        <label for="receipt" class="form-label fw-bold">Upload Receipt (Optional)</label>
+                        <input type="file" class="form-control form-control-lg shadow-sm" id="receipt" name="receipt" accept="image/*,.pdf" style="border-radius: 25px;">
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary btn-lg px-4" style="border-radius: 25px;">
                             <i class="fas fa-save"></i> Save Expense
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url 'expenses' %}'">
+                        <button type="button" class="btn btn-secondary btn-lg px-4" onclick="window.location.href='{% url 'expenses' %}'" style="border-radius: 25px;">
                             <i class="fas fa-times"></i> Cancel
                         </button>
                     </div>
@@ -120,7 +131,7 @@ $(document).ready(function() {
 
     // Set default date to today
     const today = new Date().toISOString().split('T')[0];
-    $('#expense_date').val(today);
+    $('#date').val(today);
 
     // Form validation
     $('#expenseForm').on('submit', function(e) {
