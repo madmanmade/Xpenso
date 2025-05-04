@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: expensetracker
+    name: xpenso
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn expensetracker_enhanced.wsgi:application --log-file -
